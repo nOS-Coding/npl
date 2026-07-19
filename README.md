@@ -1,13 +1,8 @@
 # npl — nano programming language
 
-
----
-
 npl is the easiest programming language to learn that is not blocky or stinky. You can program like it is just your regular coding session, but with a smaller footprint on your PC, and the most seamless experience for any programmer: fewer deps, more understandable and less syntax, and shorter code for big jobs.
 
 NPL is written in **assembly**, making it genuinely lightweight from the ground up. The most minimal hardware you can run NPL on is a first-gen Raspberry Pi with 256MB of RAM. Or use **mnpl** (micro NPL) for microcontrollers, which require a Pi Pico at minimum.
-
----
 
 ## *Easily* integrate with any IDE
 ## *Add* your plugins and libraries
@@ -65,8 +60,6 @@ Plug anything, they are not billed.
 
 ### AI and Education Ready
 NPL is a great language to teach in schools, especially for primary school students, for them to truly understand what coding is and to be able to create their own apps and scripts. We have written training data and guides to make even 5-year-olds learn. For beginners, there is a self-debugging IDE built with NPL itself.
-
----
 
 ## Language Specification
 
@@ -249,8 +242,6 @@ Lists can hold mixed types: integers, floats, strings, and none.
 | `length "hello"` | returns string length (5) |
 | `plug yourplugin` | load a plugin from project dir |
 
----
-
 ## Libraries
 
 ### nplm — NPL Main (core)
@@ -314,8 +305,6 @@ Integrate NPL with projects written in other languages. Bridgers handle the tran
 
 The most user-friendly TUI framework imaginable. For developers: fill-in-the-blank drafts you can distribute immediately. For users: fast, optimized, and sleek. Used for building installer scripts and interactive terminal apps. (Syntax TBD)
 
----
-
 ## The Librarian — Package Manager
 
 Install libraries from the community index before using `addlib` in your code.
@@ -330,8 +319,6 @@ Install libraries from the community index before using `addlib` in your code.
 
 The librarian pulls from a community-maintained index (a JSON file in a public git repo). Libraries are stored locally. No central server — zero infrastructure cost. Community members submit PRs to add their own tools, libraries, and plugins.
 
----
-
 ## File I/O
 
 Built-in file operations (part of nplm):
@@ -342,8 +329,6 @@ Built-in file operations (part of nplm):
 | `write "file.txt" data` | write data to file (overwrites) |
 | `add "file.txt" data` | append data to file |
 | `delete "file.txt"` | delete a file |
-
----
 
 ## Error Handling — STF
 
@@ -359,8 +344,6 @@ Line 7: cannot divide by zero.
 
 STF (SyntaxFree) is the error system. For help, use `stfu`.
 
----
-
 ## Platform Support
 
 NPL runs on all Unix systems, Windows, and BSD. The `sh` library always uses `sh` — on Windows, install `sh` yourself.
@@ -368,8 +351,6 @@ NPL runs on all Unix systems, Windows, and BSD. The `sh` library always uses `sh
 - **Minimum hardware:** first-gen Raspberry Pi, 256MB RAM.
 - **Microcontrollers:** use `mnpl` (micro NPL), Pi Pico minimum.
 - **Compiled output:** `.npl`
-
----
 
 ## Full Example
 
