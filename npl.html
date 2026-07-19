@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>npl — nano programming language</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:   #141414;
+    --surface: #1c1c1c;
+    --surface2:#242424;
+    --border:  #333;
+    --green:   #00ff41;
+    --green-dim:#00cc33;
+    --text:    #eeeeee;
+    --muted:   #888;
+    --dim:     #555;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.18;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.8;
+    overflow-x: hidden;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+  }
+
+  ::selection { background: var(--green); color: #000; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--green-dim); }
+
+  /* TYPOGRAPHY */
+  h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.0;
+    color: var(--green);
+    margin: 3rem 0 0.5rem;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    margin: 3.5rem 0 0.8rem;
+    padding-top: 3.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green);
+    margin: 2.5rem 0 0.5rem;
+  }
+
+  p { color: var(--muted); margin-bottom: 1rem; }
+  strong { color: var(--text); font-weight: 700; }
+  em { color: var(--text); font-style: italic; }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  a { color: var(--green); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* INLINE CODE */
+  code {
+    background: var(--surface2);
+    color: var(--green);
+    padding: 1px 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    border: 1px solid var(--border);
+  }
+
+  /* TERMINAL WIDGET — wraps every pre */
+  .term {
+    margin: 1rem 0;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .term-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .term-dot-r { background: #ff5f57; }
+  .term-dot-y { background: #ffbd2e; }
+  .term-dot-g { background: #28ca41; }
+
+  .term-title {
+    font-size: 11px;
+    color: var(--dim);
+    margin-left: auto;
+    margin-right: auto;
+    padding-right: 28px;
+  }
+
+  .term pre {
+    background: transparent;
+    border: none;
+    border-left: 3px solid var(--green);
+    padding: 1.1rem 1.3rem;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--text);
+    margin: 0;
+  }
+
+  .term pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  /* BLOCKQUOTE */
+  blockquote {
+    border-left: 3px solid var(--dim);
+    padding: 0.6rem 1rem;
+    margin: 1rem 0;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  blockquote code { background: none; border: none; color: var(--muted); }
+
+  /* LISTS */
+  ul, ol { margin: 0.8rem 0 1rem 1.5rem; color: var(--muted); }
+  li { margin-bottom: 0.3rem; }
+  li code { font-size: 12px; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 13px; }
+  th {
+    text-align: left;
+    padding: 8px 14px;
+    background: var(--surface2);
+    color: var(--green);
+    font-size: 11px;
+    letter-spacing: 1px;
+    border: 1px solid var(--border);
+    font-weight: 700;
+  }
+  td { padding: 8px 14px; border: 1px solid var(--border); color: var(--muted); }
+  td:first-child { color: var(--text); background: var(--surface); white-space: nowrap; }
+  tr:hover td { background: var(--surface2); }
+  tr:hover td:first-child { background: var(--surface2); }
+
+  /* TITLE */
+  .title-block {
+    padding: 5rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+
+  /* EASIER LIST */
+  .easier-list { margin: 1.5rem 0; display: flex; flex-direction: column; gap: 0.2rem; }
+  .easier-list .line { font-size: 20px; font-weight: 300; color: var(--muted); letter-spacing: -0.3px; }
+  .easier-list .line em { color: var(--green); font-style: italic; font-weight: 700; }
+  .easier-close { font-size: 22px; font-weight: 800; color: var(--text); margin-top: 0.8rem; letter-spacing: -0.5px; }
+
+  /* BUTTON */
+  .btn {
+    display: inline-block;
+    background: var(--green);
+    color: #000;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 20px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-top: 1rem;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,255,65,0.3); text-decoration: none; }
+  .btn:hover::after { transform: translateX(0); }
+  .btn:active { transform: translateY(0); }
+
+  @media (max-width: 600px) {
+    body { padding: 0 1rem 4rem; }
+    h1 { font-size: 36px; }
+    h2 { font-size: 18px; }
+    .easier-list .line { font-size: 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #bg-canvas { display: none; }
+    .btn, .btn::after { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="title-block">
+  <h1>npl — nano programming language</h1>
+</div>
+
+<hr>
+
+<p>npl is the easiest programming language to learn that is not blocky or stinky. You can program like it is just your regular coding session, but with a smaller footprint on your PC, and the most seamless experience for any programmer: fewer deps, more understandable and less syntax, and shorter code for big jobs.</p>
+
+<p>NPL is written in <strong>assembly</strong>, making it genuinely lightweight from the ground up. The most minimal hardware you can run NPL on is a first-gen Raspberry Pi with 256MB of RAM. Or use <strong>mnpl</strong> (micro NPL) for microcontrollers, which require a Pi Pico at minimum.</p>
+
+<hr>
+
+<div class="easier-list">
+  <div class="line"><em>Easily</em> integrate with any IDE</div>
+  <div class="line"><em>Add</em> your plugins and libraries</div>
+  <div class="line"><em>Start</em> coding in seconds</div>
+  <div class="line"><em>Integrate</em> with different languages</div>
+  <div class="line"><em>Experience</em> your code faster than ever</div>
+  <div class="line"><em>Run</em> it on any device</div>
+</div>
+<div class="easier-close">See? <strong>EASIER.</strong></div>
+
+<h3>Libraries</h3>
+<p>Libraries? Nahh, we have a librarian. Libraries cover everything: for artists (canvas), math nerds (fath), software and game devs, and more. Just use:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">terminal</div></div><pre>npl librarian -i yourlib</pre></div>
+<p>to use our pkg manager, librarian. Here's Python's pkg manager:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">terminal</div></div><pre>python3 -m pip install yourlib --break-system-packages</pre></div>
+
+<h3>HawkTUI</h3>
+<p>The most user-friendly TUI you can imagine. For developers: drafts you only need to fill in and distribute. For users: fast, optimized, and sleek.</p>
+
+<h3>Installers</h3>
+<p>NPL is the best language for writing installer scripts. Built-in commands, helpers, and a TUI for that. Export as <code>.npl</code> or <code>.sh</code> format. When saved as <code>.sh</code>, if the user does not have NPL installed, a temporary minimal NPL installation starts automatically. When the installer finishes, the temporary NPL gets deleted.</p>
+
+<h3>Websites</h3>
+<p>HTML with JS is too complicated. Instead, use HTML, with NPL. The HTML is just a placeholder — the real thing is NPL, with its own libraries to create optimized and good-looking website designs. Write less code, get a better website. Use our automated "htmlizer" tool to compile NPL and HTML into a single file.</p>
+
+<h3>Integrate with Anything</h3>
+<p>Any project works. Use our bridgers and langizers (htmlizer, pyalizer, etc.) to integrate with code written in different languages.</p>
+
+<h3>STF — SyntaxFree</h3>
+<p>We removed the taxes. You can actually read them now:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">stf output</div></div><pre>Line 33: variable "a" is not defined.</pre></div>
+<p>So you do not have to decipher a 200-sentence essay. STF for short. For help, use <code>stfu</code>.</p>
+
+<h3>Best Language for the Pi</h3>
+<p>Raspberry Pis and NPL have a lot in common — both are small, but they have big <strong>"things"</strong> in the bottom. We created a dedicated library for every RPi device: GPIO, chips, system, OS, and optimized NPL for these devices to get the best performance and compatibility ever.</p>
+
+<h3>Control Your PC and Beyond</h3>
+<p>Use the built-in libs to control your PC: media, shell scripts, web fetch, and more.</p>
+
+<h3>Plugin System</h3>
+<p>Build your plugins to patch or extend NPL. Create and export using your IDE, put the file in your project directory, and type:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">terminal</div></div><pre>plug yourplugin</pre></div>
+<p>Plug anything, they are not billed.</p>
+
+<h3>AI and Education Ready</h3>
+<p>NPL is a great language to teach in schools, especially for primary school students, for them to truly understand what coding is and to be able to create their own apps and scripts. We have written training data and guides to make even 5-year-olds learn. For beginners, there is a self-debugging IDE built with NPL itself.</p>
+
+<hr>
+
+<h2>Language Specification</h2>
+
+<h3>Entry Point</h3>
+<p>Every NPL code generally requires <em><strong>nplm</strong></em> via addlib. — this is the entry point. Order of libraries in addlib does not matter. Execution begins immediately after, top to bottom.</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>addlib nplm, sh, fath</pre></div>
+<blockquote><code>nplm is generally required. other libs are optional and order-independent.</code></blockquote>
+
+<h3>Comments</h3>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>#this is a comment#</pre></div>
+<p>Comments are wrapped in <code>#</code> on both sides. They can appear anywhere on a line.</p>
+
+<h3>Variables</h3>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>var a = 1
+var name = "nano"
+var pi = 3.14
+var nothing = none</pre></div>
+<p>Variables are declared with <code>var</code>. After declaration, reassignment needs no keyword:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>a = a + 1</pre></div>
+<p>Types are inferred automatically. NPL supports: integers, floats, strings, and none.</p>
+
+<h3>String Interpolation</h3>
+<p>Use curly braces inside a string to interpolate variables:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>text("Hello {name}, you are {age} years old.")</pre></div>
+
+<h3>Functions</h3>
+<p>Single-line function:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>fn add a b = result a + b</pre></div>
+<p>Multi-line function:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>fn greet name /
+  text("Hello {name}")
+  result name
+/</pre></div>
+<p>Calling a function:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>greet "nano"
+var total = add 3 5</pre></div>
+<p><strong>Rules:</strong></p>
+<ul>
+  <li>Arguments are space-separated after the function name.</li>
+  <li><code>result</code> returns a single value.</li>
+  <li>Variables declared inside a function are local — they do not exist outside it.</li>
+  <li>Global variables are declared outside any function.</li>
+  <li>Calling a function that returns a value without catching it discards the value silently.</li>
+</ul>
+
+<h3>Block System — Slashes</h3>
+<p>NPL uses slashes as block delimiters. The slash count represents nesting depth. Opening and closing a block use the same slash count.</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>if a = 1 /          #depth 1#
+  loop 10 //        #depth 2#
+    while b &lt; 5 /   #depth 3, new block inside loop#
+      b = b + 1
+    /               #closes depth 3#
+  //               #closes depth 2#
+/                  #closes depth 1#</pre></div>
+
+<h3>Conditionals</h3>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>if a = 1 /
+  text("one")
+/ else if a = 2 //
+  text("two")
+// else ///
+  text("other")
+///</pre></div>
+<p>Each branch in the chain gets one more slash than the previous. The chain is self-documenting — you always know exactly where you are by counting slashes.</p>
+
+<h3>Loops</h3>
+<p>Counted loop (repeats N times):</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>loop 10 /
+  text("hello")
+/</pre></div>
+<p>While loop:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>while a &lt; 10 /
+  a = a + 1
+  wait 0.5
+/</pre></div>
+
+<h3>Operators</h3>
+<table>
+  <tr><th>Operator</th><th>Meaning</th></tr>
+  <tr><td><code>=</code></td><td>assignment (var) or equality check (if)</td></tr>
+  <tr><td><code>!=</code></td><td>not equal</td></tr>
+  <tr><td><code>&gt;</code></td><td>greater than</td></tr>
+  <tr><td><code>&lt;</code></td><td>less than</td></tr>
+  <tr><td><code>&gt;=</code></td><td>greater or equal</td></tr>
+  <tr><td><code>&lt;=</code></td><td>less or equal</td></tr>
+  <tr><td><code>+</code></td><td>addition</td></tr>
+  <tr><td><code>-</code></td><td>subtraction</td></tr>
+  <tr><td><code>*</code></td><td>multiplication</td></tr>
+  <tr><td><code>/</code></td><td>division</td></tr>
+  <tr><td><code>and</code></td><td>logical and</td></tr>
+  <tr><td><code>or</code></td><td>logical or</td></tr>
+  <tr><td><code>not</code></td><td>logical not</td></tr>
+</table>
+
+<h3>Input</h3>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>input("What is your age?"), answer = "age"
+text("Your age is: {age}")</pre></div>
+<p>Input is autodetected — <code>"10"</code> becomes an integer, <code>"3.14"</code> becomes a float, <code>"hello"</code> becomes a string.</p>
+
+<h3>Lists</h3>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>list "my vars" /
+2
+3
+8
+/</pre></div>
+<table>
+  <tr><th>Syntax</th><th>Result</th></tr>
+  <tr><td><code>"my vars"/-l/</code></td><td>all items: 2, 3, 8</td></tr>
+  <tr><td><code>"my vars"/-l/ 1</code></td><td>first item: 2</td></tr>
+  <tr><td><code>"my vars"/-l/ -1</code></td><td>last item: 8</td></tr>
+  <tr><td><code>"my vars"/-l/ 2:4</code></td><td>slice: 3, 8</td></tr>
+  <tr><td><code>list "my vars" -c</code></td><td>count: 3</td></tr>
+  <tr><td><code>"my vars"/-l/ 1 = 99</code></td><td>mutate first item to 99</td></tr>
+</table>
+<p>Lists can hold mixed types: integers, floats, strings, and none.</p>
+
+<h3>Built-in Commands</h3>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>text("...")</code></td><td>print to terminal</td></tr>
+  <tr><td><code>wait 0.5</code></td><td>sleep for 0.5 seconds</td></tr>
+  <tr><td><code>nuke</code></td><td>force stop the program</td></tr>
+  <tr><td><code>length "hello"</code></td><td>returns string length (5)</td></tr>
+  <tr><td><code>plug yourplugin</code></td><td>load a plugin from project dir</td></tr>
+</table>
+
+<hr>
+
+<h2>Libraries</h2>
+
+<h3>nplm — NPL Main (core)</h3>
+<p>Always required. Contains all core language features: variables, functions, loops, conditionals, lists, input, text, wait, nuke, and length.</p>
+
+<h3>sh — Shell</h3>
+<p>Enables shell passthrough. Always uses <code>sh</code> regardless of OS.</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>addlib nplm, sh</pre></div>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>sh&gt; echo "hello from shell"
+sh&gt; sudo apt update &amp;&amp; sudo apt upgrade</pre></div>
+<p>Output streams directly to the NPL terminal. No capturing — <code>var x = sh&gt;</code> is not valid. Shell errors print as-is and NPL continues.</p>
+
+<h3>fath — Math</h3>
+<p>Full math library covering all standard operations.</p>
+<table>
+  <tr><th>Function</th><th>Description</th></tr>
+  <tr><td><code>mod a b</code></td><td>modulo</td></tr>
+  <tr><td><code>pow a b</code></td><td>power</td></tr>
+  <tr><td><code>sqrt a</code></td><td>square root</td></tr>
+  <tr><td><code>floor a</code></td><td>floor</td></tr>
+  <tr><td><code>ceil a</code></td><td>ceiling</td></tr>
+  <tr><td><code>round a</code></td><td>round</td></tr>
+  <tr><td><code>min a b</code></td><td>minimum</td></tr>
+  <tr><td><code>max a b</code></td><td>maximum</td></tr>
+  <tr><td><code>abs a</code></td><td>absolute value</td></tr>
+  <tr><td><code>log a</code></td><td>logarithm</td></tr>
+  <tr><td><code>sin a</code></td><td>sine</td></tr>
+  <tr><td><code>cos a</code></td><td>cosine</td></tr>
+  <tr><td><code>tan a</code></td><td>tangent</td></tr>
+  <tr><td><code>pi</code></td><td>constant: 3.14159...</td></tr>
+  <tr><td><code>e</code></td><td>constant: 2.71828...</td></tr>
+</table>
+
+<h3>canvas — Graphics</h3>
+<p>For artists and game developers. Graphics and drawing primitives. (Syntax TBD)</p>
+
+<h3>rpi — Raspberry Pi</h3>
+<p>Dedicated library for every RPi device. Covers GPIO, chips, system, OS integration, and hardware-level optimizations for maximum performance and compatibility.</p>
+
+<h3>htmlizer — Web</h3>
+<p>Compile NPL and HTML into a single optimized file. NPL handles all logic, HTML is just a placeholder. Write less code, get a better website.</p>
+
+<h3>pyalizer and other bridgers</h3>
+<p>Integrate NPL with projects written in other languages. Bridgers handle the translation layer between NPL and the target language.</p>
+
+<h3>HawkTUI — Terminal UI</h3>
+<p>The most user-friendly TUI framework imaginable. For developers: fill-in-the-blank drafts you can distribute immediately. For users: fast, optimized, and sleek. Used for building installer scripts and interactive terminal apps. (Syntax TBD)</p>
+
+<hr>
+
+<h2>The Librarian — Package Manager</h2>
+<p>Install libraries from the community index before using <code>addlib</code> in your code.</p>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>npl librarian -i libname</code></td><td>install a library</td></tr>
+  <tr><td><code>npl librarian -r libname</code></td><td>remove a library</td></tr>
+  <tr><td><code>npl librarian -u libname</code></td><td>update a library</td></tr>
+  <tr><td><code>npl librarian -info libname</code></td><td>info about a library</td></tr>
+  <tr><td><code>npl librarian -h</code></td><td>help</td></tr>
+</table>
+<p>The librarian pulls from a community-maintained index (a JSON file in a public git repo). Libraries are stored locally. No central server — zero infrastructure cost. Community members submit PRs to add their own tools, libraries, and plugins.</p>
+
+<hr>
+
+<h2>File I/O</h2>
+<p>Built-in file operations (part of nplm):</p>
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr><td><code>read "file.txt"</code></td><td>read file contents</td></tr>
+  <tr><td><code>write "file.txt" data</code></td><td>write data to file (overwrites)</td></tr>
+  <tr><td><code>add "file.txt" data</code></td><td>append data to file</td></tr>
+  <tr><td><code>delete "file.txt"</code></td><td>delete a file</td></tr>
+</table>
+
+<hr>
+
+<h2>Error Handling — STF</h2>
+<p>NPL does not have try/catch. Errors crash the program and print debug info in plain language. No deciphering required.</p>
+<p>Example error output:</p>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">stf output</div></div><pre>Line 33: variable "a" is not defined. Did you forget to declare it with var?
+Line 12: function "greet" expects 1 argument, got 0.
+Line 7: cannot divide by zero.</pre></div>
+<p>STF (SyntaxFree) is the error system. For help, use <code>stfu</code>.</p>
+
+<hr>
+
+<h2>Platform Support</h2>
+<p>NPL runs on all Unix systems, Windows, and BSD. The <code>sh</code> library always uses <code>sh</code> — on Windows, install <code>sh</code> yourself.</p>
+<ul>
+  <li><strong>Minimum hardware:</strong> first-gen Raspberry Pi, 256MB RAM.</li>
+  <li><strong>Microcontrollers:</strong> use <code>mnpl</code> (micro NPL), Pi Pico minimum.</li>
+  <li><strong>Compiled output:</strong> <code>.npl</code></li>
+</ul>
+
+<hr>
+
+<h2>Full Example</h2>
+<div class="term"><div class="term-bar"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div><div class="term-title">example.npl</div></div><pre>addlib nplm, sh, fath
+
+var a = 1
+
+fn adda = a = a + 1
+
+list "results" /
+/
+
+input("What is your name?"), answer = "name"
+text("Hello {name}!")
+
+while a &lt; 10 /
+  adda
+  wait 0.5
+/
+
+text("a is now {a}")
+
+if a = 10 /
+  text("reached 10!")
+  sh&gt; echo "done"
+/ else //
+  text("something went wrong.")
+//
+
+nuke</pre></div>
+
+<script>
+// Matrix rain background
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFabcdef/\\#$%&';
+const fontSize = 13;
+let columns = Math.floor(canvas.width / fontSize);
+let drops = Array(columns).fill(0).map(() => Math.random() * -100);
+
+function draw() {
+  ctx.fillStyle = 'rgba(20, 20, 20, 0.05)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.font = fontSize + 'px JetBrains Mono, monospace';
+
+  for (let i = 0; i < drops.length; i++) {
+    const char = chars[Math.floor(Math.random() * chars.length)];
+    const y = drops[i] * fontSize;
+
+    // Head char brighter
+    const headAlpha = 0.9;
+    const tailAlpha = 0.4 + Math.random() * 0.3;
+
+    if (drops[i] * fontSize === y) {
+      ctx.fillStyle = `rgba(200, 255, 210, ${headAlpha})`;
+    } else {
+      ctx.fillStyle = `rgba(0, 200, 50, ${tailAlpha})`;
+    }
+
+    ctx.fillText(char, i * fontSize, y);
+
+    if (y > canvas.height && Math.random() > 0.975) {
+      drops[i] = 0;
+    }
+    drops[i] += 0.4 + Math.random() * 0.3;
+  }
+}
+
+function loop() {
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+
+window.addEventListener('resize', () => {
+  columns = Math.floor(canvas.width / fontSize);
+  drops = Array(columns).fill(0).map(() => Math.random() * -100);
+});
+</script>
+
+</body>
+</html>
