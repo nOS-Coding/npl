@@ -1,4 +1,8 @@
-# npl — nano programming language
+<p align="center">
+  <img src="logo.png" alt="NPL Logo" width="120">
+</p>
+
+<h1 align="center">npl — nano programming language</h1>
 
 npl is the easiest programming language to learn that is not blocky or stinky. You can program like it is just your regular coding session, but with a smaller footprint on your PC, and the most seamless experience for any programmer: fewer deps, more understandable and less syntax, and shorter code for big jobs.
 
