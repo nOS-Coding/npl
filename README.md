@@ -8,12 +8,13 @@ npl is the easiest programming language to learn that is not blocky or stinky. Y
 
 NPL is written in **assembly**, making it genuinely lightweight from the ground up. The most minimal hardware you can run NPL on is a first-gen Raspberry Pi with 256MB of RAM. Or use **mnpl** (micro NPL) for microcontrollers, which require a Pi Pico at minimum.
 
-## *Easily* integrate with any IDE
-## *Add* your plugins and libraries
-## *Start* coding in seconds
-## *Integrate* with different languages
-## *Experience* your code faster than ever
-## *Run* it on any device
+- **Easily** integrate with any IDE
+- **Add** your plugins and libraries
+- **Start** coding in seconds
+- **Integrate** with different languages
+- **Experience** your code faster than ever
+- **Run** it on any device
+
 See? **EASIER.**
 
 ### Libraries
