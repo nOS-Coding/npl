@@ -247,6 +247,7 @@
 <canvas id="bg-canvas"></canvas>
 
 <div class="title-block">
+  <img src="logo.png" alt="NPL Logo" style="height:80px;margin-bottom:1rem">
   <h1>npl — nano programming language</h1>
 </div>
 
@@ -623,40 +624,15 @@ window.addEventListener('resize', () => {
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap');
 .build-progress{
   position:fixed;top:0;left:0;right:0;z-index:9999;
-  background:#1a0000;border-bottom:2px solid #ff0000;
-  padding:14px 20px;text-align:center;
+  background:#1a0000;border-bottom:1px solid #ff0000;
+  padding:8px 16px;text-align:center;
   font-family:'Space Grotesk',sans-serif;
-  font-size:clamp(16px,3vw,22px);font-weight:700;
-  color:#ff0000;letter-spacing:2px;text-transform:uppercase;
-  cursor:pointer;
-  animation:buildPulse 2s ease-in-out infinite;
-  box-shadow:0 4px 30px rgba(255,0,0,0.3);
-  transition:opacity .4s,transform .4s;
+  font-size:13px;font-weight:700;
+  color:#ff0000;letter-spacing:1.5px;text-transform:uppercase;
 }
-.build-progress::before{
-  content:'⚠';margin-right:10px;font-size:1.2em;
-}
-.build-progress::after{
-  content:'⚠';margin-left:10px;font-size:1.2em;
-}
-.build-progress.dismissed{opacity:0;transform:translateY(-100%);pointer-events:none}
-@keyframes buildPulse{
-  0%,100%{background:#1a0000;box-shadow:0 4px 30px rgba(255,0,0,0.3)}
-  50%{background:#2a0000;box-shadow:0 4px 40px rgba(255,0,0,0.5)}
-}
-body{padding-top:60px!important}
-body.build-dismissed{padding-top:0!important}
+body{padding-top:40px!important}
 </style>
-<div class="build-progress" id="buildProgress" onclick="dismissBuild()">BUILD IN PROGRESS</div>
-<script>
-function dismissBuild(){
-  document.getElementById('buildProgress').classList.add('dismissed');
-  document.body.classList.add('build-dismissed');
-}
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape')dismissBuild();
-});
-</script>
+<div class="build-progress">BUILD IN PROGRESS</div>
 
 </body>
 </html>
